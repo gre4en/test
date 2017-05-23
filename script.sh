@@ -42,6 +42,21 @@ then
     fileplace=/etc/network/interfaces.d/ipv6
   fi
 fi
+
+while read line; do
+  len=${#line}
+  if [ "${line:(-6)}" = "static" ]
+  then
+    ip="static"
+    inter="${line:6:(len-18)}"
+  fi
+  if [ "${line:(-4)}" = "dhcp" ]
+  then
+    ip="dhcp"
+    inter="${line:6:(len-16)}"
+  fi
+done < /etc/network/interfaces
+
 k1=0
 k=1
 while read line; do
@@ -60,20 +75,35 @@ while read line; do
     sudo sh -c "echo '' >> /etc/postfix/master.cf"
 
     #Добавляем alias IP
-    if [ "${str:4:1}" != ":" ]
+    if [ "$ip" = "static" ]
     then
-      sudo sh -c "echo '' >> /etc/network/interfaces"
-      sudo sh -c "echo 'auto eth0:$k1' >> /etc/network/interfaces"
-      sudo sh -c "echo 'iface eth0:$k1 inet static' >> /etc/network/interfaces"
-      sudo sh -c "echo 'address ${line:0:i-1}' >> /etc/network/interfaces"
+      if [ "${str:4:1}" != ":" ]
+      then
+        sudo sh -c "echo '' >> /etc/network/interfaces"
+        sudo sh -c "echo 'auto $inter:$k1' >> /etc/network/interfaces"
+        sudo sh -c "echo 'iface $inter:$k1 inet static' >> /etc/network/interfaces"
+        sudo sh -c "echo 'address ${line:0:i-1}' >> /etc/network/interfaces"
+      fi
+      if [ "${str:4:1}" = ":" ]
+      then
+        sudo sh -c "echo '' >> $fileplace"
+        sudo sh -c "echo 'auto $inter:$k1' >> $fileplace"
+        sudo sh -c "echo 'iface $inter:$k1 inet6 static' >> $fileplace"
+        sudo sh -c "echo 'address ${line:0:i-1}' >> $fileplace"
+        sudo sh -c "echo 'netmask 64' >> $fileplace"
+      fi
     fi
-    if [ "${str:4:1}" = ":" ]
+    if [ "$ip" = "static" ]
     then
-      sudo sh -c "echo '' >> $fileplace"
-      sudo sh -c "echo 'auto eth0:$k1' >> $fileplace"
-      sudo sh -c "echo 'iface eth0:$k1 inet6 static' >> $fileplace"
-      sudo sh -c "echo 'address ${line:0:i-1}' >> $fileplace"
-      sudo sh -c "echo 'netmask 64' >> $fileplace"
+      IP=$(ifconfig $inter | grep 'inet addr:'| cut -d: -f2 | awk '{ print $1}') 
+      GW=$(netstat -r | grep 'default' | cut -d: -f2 | awk '{ print $2}')
+      sudo sh -c "echo '' >> /etc/network/interfaces"
+      sudo sh -c "echo 'auto $inter' >> /etc/network/interfaces"
+      sudo sh -c "echo 'iface $inter inet static' >> /etc/network/interfaces"
+      sudo sh -c "echo 'address $IP' >> /etc/network/interfaces" 
+      sudo sh -c "echo 'netmask 255.255.255.0' >> /etc/network/interfaces" 
+      sudo sh -c "echo 'gateway $GW' >> /etc/network/interfaces" 
+      sudo sh -c "echo 'dns-nameservers 8.8.8.8' >> /etc/network/interfaces"
     fi
   fi
   let "k=k+1"
@@ -110,7 +140,6 @@ sudo service opendkim restart
 
 echo "----------Перезапуск интерфейсов.----------"
 sudo service networking restart
-
 sudo postfix start
 sudo postfix reload
 
