@@ -125,7 +125,7 @@ then
   sudo sh -c "echo 'Selector                dkim' >> /etc/opendkim.conf"
 
   sudo sh -c "echo '' >> /etc/default/opendkim"
-  sudo sh -c echo 'SOCKET="inet:12345@localhost"' >> /etc/default/opendkim
+  sudo sh -c "echo 'SOCKET=\"inet:12345@localhost\"' >> /etc/default/opendkim"
 
   sudo sh -c "echo '' >> /etc/postfix/main.cf"
   sudo sh -c "echo 'milter_default_action = accept' >> /etc/postfix/main.cf"
