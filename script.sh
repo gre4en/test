@@ -45,15 +45,10 @@ fi
 
 while read line; do
   len=${#line}
-  if [ "${line:(-6)}" = "static" ]
+  if [ "${line:4}" = "auto" ]
   then
-    #ip="static"
-    inter="${line:6:(len-18)}"
-  fi
-  if [ "${line:(-4)}" = "dhcp" ]
-  then
-    #ip="dhcp"
-    inter="${line:6:(len-16)}"
+    inter="${line:5:len}"
+    break
   fi
 done < /etc/network/interfaces
 
