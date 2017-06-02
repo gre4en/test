@@ -47,12 +47,12 @@ while read line; do
   len=${#line}
   if [ "${line:(-6)}" = "static" ]
   then
-    ip="static"
+    #ip="static"
     inter="${line:6:(len-18)}"
   fi
   if [ "${line:(-4)}" = "dhcp" ]
   then
-    ip="dhcp"
+    #ip="dhcp"
     inter="${line:6:(len-16)}"
   fi
 done < /etc/network/interfaces
@@ -75,35 +75,28 @@ while read line; do
     sudo sh -c "echo '' >> /etc/postfix/master.cf"
 
     #Добавляем alias IP
-    if [ "$ip" = "static" ]
+
+    sudo rm -f /etc/network/interfaces
+    sudo touch /etc/network/interfaces
+    
+    sudo sh -c "echo 'auto $inter' >> /etc/network/interfaces"
+    sudo sh -c "echo 'iface $inter inet static' >> /etc/network/interfaces"
+    sudo sh -c "echo '' >> /etc/network/interfaces"
+
+    if [ "${str:4:1}" != ":" ]
     then
-      if [ "${str:4:1}" != ":" ]
-      then
-        sudo sh -c "echo '' >> /etc/network/interfaces"
-        sudo sh -c "echo 'auto $inter:$k1' >> /etc/network/interfaces"
-        sudo sh -c "echo 'iface $inter:$k1 inet static' >> /etc/network/interfaces"
-        sudo sh -c "echo 'address ${line:0:i-1}' >> /etc/network/interfaces"
-      fi
-      if [ "${str:4:1}" = ":" ]
-      then
-        sudo sh -c "echo '' >> $fileplace"
-        sudo sh -c "echo 'auto $inter:$k1' >> $fileplace"
-        sudo sh -c "echo 'iface $inter:$k1 inet6 static' >> $fileplace"
-        sudo sh -c "echo 'address ${line:0:i-1}' >> $fileplace"
-        sudo sh -c "echo 'netmask 64' >> $fileplace"
-      fi
-    fi
-    if [ "$ip" = "static" ]
-    then
-      IP=$(ifconfig $inter | grep 'inet addr:'| cut -d: -f2 | awk '{ print $1}') 
-      GW=$(netstat -r | grep 'default' | cut -d: -f2 | awk '{ print $2}')
       sudo sh -c "echo '' >> /etc/network/interfaces"
-      sudo sh -c "echo 'auto $inter' >> /etc/network/interfaces"
-      sudo sh -c "echo 'iface $inter inet static' >> /etc/network/interfaces"
-      sudo sh -c "echo 'address $IP' >> /etc/network/interfaces" 
-      sudo sh -c "echo 'netmask 255.255.255.0' >> /etc/network/interfaces" 
-      sudo sh -c "echo 'gateway $GW' >> /etc/network/interfaces" 
-      sudo sh -c "echo 'dns-nameservers 8.8.8.8' >> /etc/network/interfaces"
+      sudo sh -c "echo 'auto $inter:$k1' >> /etc/network/interfaces"
+      sudo sh -c "echo 'iface $inter:$k1 inet static' >> /etc/network/interfaces"
+      sudo sh -c "echo 'address ${line:0:i-1}' >> /etc/network/interfaces"
+    fi
+    if [ "${str:4:1}" = ":" ]
+    then
+      sudo sh -c "echo '' >> $fileplace"
+      sudo sh -c "echo 'auto $inter:$k1' >> $fileplace"
+      sudo sh -c "echo 'iface $inter:$k1 inet6 static' >> $fileplace"
+      sudo sh -c "echo 'address ${line:0:i-1}' >> $fileplace"
+      sudo sh -c "echo 'netmask 64' >> $fileplace"
     fi
   fi
   let "k=k+1"
