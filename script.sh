@@ -57,6 +57,15 @@ while read line; do
   fi
 done < /etc/network/interfaces
 
+if [ "$firstrun" = "1" ]
+then
+  sudo rm -f /etc/network/interfaces
+  sudo touch /etc/network/interfaces
+  
+  sudo sh -c "echo 'auto $inter' >> /etc/network/interfaces"
+  sudo sh -c "echo 'iface $inter inet static' >> /etc/network/interfaces"
+  sudo sh -c "echo '' >> /etc/network/interfaces"
+fi
 k1=0
 k=1
 while read line; do
@@ -75,13 +84,6 @@ while read line; do
     sudo sh -c "echo '' >> /etc/postfix/master.cf"
 
     #Добавляем alias IP
-
-    sudo rm -f /etc/network/interfaces
-    sudo touch /etc/network/interfaces
-    
-    sudo sh -c "echo 'auto $inter' >> /etc/network/interfaces"
-    sudo sh -c "echo 'iface $inter inet static' >> /etc/network/interfaces"
-    sudo sh -c "echo '' >> /etc/network/interfaces"
 
     if [ "${str:4:1}" != ":" ]
     then
