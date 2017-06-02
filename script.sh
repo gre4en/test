@@ -45,9 +45,9 @@ fi
 
 while read line; do
   len=${#line}
-  if [ "${line:4}" = "auto" ]
+  if [ "${line:0:4}" = "auto" ]
   then
-    inter="${line:5:len}"
+    inter="${line:5}"
     break
   fi
 done < /etc/network/interfaces
